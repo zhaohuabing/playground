@@ -29,6 +29,16 @@ static_resources:
                   prefix: "/"
                 route:
                   cluster: local_service
+                typedPerFilterConfig:
+                  envoy.filters.http.header_mutation:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutationPerRoute
+                    mutations:
+                      request_mutations:
+                      - append:
+                          header:
+                            key: x-teg-oidcauthentication
+                            value: bookinfo
+                          append_action: OVERWRITE_IF_EXISTS_OR_ADD
           http_filters:
           - name: envoy.filters.http.header_mutation
             typed_config:
@@ -39,6 +49,7 @@ static_resources:
                     header:
                       key: "x-teg-oidcauthentication"
                       value: "bookinfo"
+                    append_action: OVERWRITE_IF_EXISTS_OR_ADD    
           - name: envoy.filters.http.rbac
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
