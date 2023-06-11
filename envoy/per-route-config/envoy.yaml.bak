@@ -15,9 +15,9 @@ static_resources:
             typedConfig:
               '@type': type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
               path: /dev/stdout
-              log_format:
+              log_format: 
                 text_format_source:
-                  inline_string: "[%START_TIME%] %REQ(x-teg-oidcauthentication)% %REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL% %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% %REQ(X-FORWARDED-FOR)% %REQ(USER-AGENT)% %REQ(X-REQUEST-ID)% %REQ(:AUTHORITY)% %UPSTREAM_HOST%\n"
+                  inline_string: "%REQ(x-teg-oidcauthentication)% %LOCAL_REPLY_BODY%:%RESPONSE_CODE%:path=%REQ(:path)%\n"      
           route_config:
             name: local_route
             virtual_hosts:
@@ -26,19 +26,43 @@ static_resources:
               - "*"
               routes:
               - match:
-                  prefix: "/"
+                  prefix: "/deny"
                 route:
                   cluster: local_service
+                typedPerFilterConfig:
+                  envoy.filters.http.header_mutation:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutationPerRoute
+                    mutations:
+                      request_mutations:
+                      - append:
+                          header:
+                            key: x-teg-oidcauthentication
+                            value: forbidden
+              - match:
+                  prefix: "/get"
+                route:
+                  cluster: local_service
+                typedPerFilterConfig:
+                  envoy.filters.http.header_mutation:
+                    "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutationPerRoute
+                    mutations:
+                      request_mutations:
+                      - append:
+                          header:
+                            key: x-teg-oidcauthentication
+                            value: allow
           http_filters:
-          - name: envoy.filters.http.header_mutation
+          - name: envoy.filters.http.header_mutation        
+            mutations:
+              request_mutations:
+              - append:
+                  header:
+                    key": "x-teg-oidcauthentication"
+                    value": "bookinfo"
+          - name: envoy.filters.http.rbac
             typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutation
-              mutations:
-                request_mutations:
-                - append:
-                    header:
-                      key: "x-teg-oidcauthentication"
-                      value: "bookinfo"
+              "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+          http_filters:
           - name: envoy.filters.http.rbac
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
@@ -54,14 +78,14 @@ static_resources:
                               "@type": type.googleapis.com/envoy.type.matcher.v3.HttpRequestHeaderMatchInput
                               header_name: x-teg-oidcauthentication
                           value_match:
-                            exact: bookinfo
+                            exact: forbidden
                     on_match:
                       action:
                         name: action
                         typed_config:
                           "@type": type.googleapis.com/envoy.config.rbac.v3.Action
-                          name: illegal-referer
-                          action: DENY
+                          name: illegal
+                          action: ALLOW
                 on_no_match:
                   action:
                     name: action
@@ -84,10 +108,15 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: backend
+                address: postman-echo.com
                 port_value: 8080
 
 admin:
+  accessLog:
+  - name: envoy.access_loggers.file
+    typedConfig:
+      '@type': type.googleapis.com/envoy.extensions.access_loggers.file.v3.FileAccessLog
+      path: /dev/stdout
   address:
     socket_address:
       address: 0.0.0.0
