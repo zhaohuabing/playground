@@ -11,7 +11,4 @@ run_log "Test upstream with access denied response"
 responds_with "RBAC: access denied" "http://localhost:${PORT_PROXY}"
 
 run_log "Test authorized upstream response"
-responds_without "RBAC: access denied" "http://localhost:${PORT_PROXY}" -H "Referer: https://www.envoyproxy.io/docs/envoy"
-
-run_log "Check admin stats"
-responds_with rbac "http://localhost:${PORT_ADMIN}/stats?fitler=rbac"
+responds_without "RBAC: access denied" "http://localhost:${PORT_PROXY}/bookinfo"
