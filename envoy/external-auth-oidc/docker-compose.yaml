@@ -1,0 +1,16 @@
+services:
+  envoy:
+    build:
+      dockerfile: ../shared/envoy/Dockerfile
+    ports:
+    - "${PORT_PROXY:-8443}:443"
+    - "${PORT_ADMIN:-10001}:10001"
+  backend:
+    build:
+      context: ../shared/echo
+  authServer:
+    platform: "linux/amd64"
+    image: ghcr.io/istio-ecosystem/authservice/authservice:0.5.3
+    volumes:
+      - ./auth-service-config.json:/etc/authservice/config.json
+
