@@ -1,7 +1,6 @@
 ARG ENVOY_IMAGE="${ENVOY_IMAGE:-envoyproxy/envoy}"
 ARG ENVOY_VARIANT="${ENVOY_VARIANT:-dev}"
 
-
 FROM ${ENVOY_IMAGE}:${ENVOY_VARIANT} as envoy-base
 ARG ENVOY_CONFIG=envoy.yaml
 ENV ENVOY_CONFIG="$ENVOY_CONFIG"
@@ -13,7 +12,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && apt-get -qq update -y \
     && apt-get -qq install --no-install-recommends -y curl
 COPY --chmod=777 "$ENVOY_CONFIG" /etc/envoy.yaml
-CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy.yaml"]
+COPY --chmod=777 *.yaml /etc
+CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy.yaml", "-l", "trace"]
 
 
 FROM envoy-base as envoy-fault-injection

@@ -1,0 +1,1 @@
+A simple sample demonstrating [Envoy's Oauth2 Filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/oauth2_filter).
