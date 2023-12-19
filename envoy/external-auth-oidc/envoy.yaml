@@ -26,7 +26,11 @@ static_resources:
               - "*"
               routes:
               - match:
-                  prefix: "/productpage"
+                  prefix: "/authservice_logout"
+                route:
+                  cluster: local_service
+              - match:
+                  prefix: "/"
                 route:
                   cluster: local_service
                 typedPerFilterConfig:

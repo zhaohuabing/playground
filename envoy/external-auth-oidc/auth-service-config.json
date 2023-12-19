@@ -17,13 +17,13 @@
             {
               "authorization_uri": "https://accounts.google.com/o/oauth2/v2/auth",
               "token_uri": "https://oauth2.googleapis.com/token ",
-              "callback_uri": "https://localhost:8443/productpage/oauth/callback",
+              "callback_uri": "https://localhost:8443/oauth/callback",
               "jwks_fetcher": {
                 "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
                 "periodic_fetch_interval_sec": 600
               },
-              "client_id": "250344188863-lddmgbasbdom9qpt1mr0rkln62281s6d.apps.googleusercontent.com",
-              "client_secret": "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",
+              "client_id": "250344188863-8e4igj06rn8n6plgtq2glv2i6in4ah3t.apps.googleusercontent.com",
+              "client_secret": "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",
               "scopes": [],
               "cookie_name_prefix": "productpage",
               "id_token": {
@@ -32,7 +32,7 @@
               },
               "logout": {
                 "path": "/authservice_logout",
-                "redirect_uri": "https://localhost:8443/some/logout/path"
+                "redirect_uri": "https://localhost:8443/oauth/callback"
               }
             }
           }
@@ -55,17 +55,17 @@
                 "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
                 "periodic_fetch_interval_sec": 600
               },
-              "client_id": "250344188863-v0d6j0er59ccmao0jn25ff0kpm6aq2ck.apps.googleusercontent.com",
-              "client_secret": "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",
+              "client_id": "250344188863-8e4igj06rn8n6plgtq2glv2i6in4ah3t.apps.googleusercontent.com",
+              "client_secret": "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",
               "scopes": [],
-              "cookie_name_prefix": "petstore",
+              "cookie_name_prefix": "petstore1",
               "id_token": {
                 "preamble": "Bearer",
                 "header": "Authorization"
               },
               "logout": {
                 "path": "/authservice_logout",
-                "redirect_uri": "https://localhost:8443/some/logout/path"
+                "redirect_uri": "https://localhost:8443/oauth2/callback"
               }
             }
           }

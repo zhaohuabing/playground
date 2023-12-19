@@ -3,7 +3,7 @@ services:
     build:
       dockerfile: ../shared/envoy/Dockerfile
     ports:
-    - "${PORT_PROXY:-443}:443"
+    - "${PORT_PROXY:-8080}:8080"
     - "${PORT_ADMIN:-10001}:10001"
   backend:
     build:
