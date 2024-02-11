@@ -136,6 +136,10 @@ static_resources:
                   envoy.filters.http.oauth2-bar:
                     "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
                     config: {}
+              - match:    
+                  prefix: "/"
+                direct_response: 
+                  status: 404      
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
