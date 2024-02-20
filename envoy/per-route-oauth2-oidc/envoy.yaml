@@ -24,6 +24,7 @@ static_resources:
                   inline_string: "[%START_TIME%] %REQ(x-teg-oidcauthentication)% %REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL% %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% %REQ(X-FORWARDED-FOR)% %REQ(USER-AGENT)% %REQ(X-REQUEST-ID)% %REQ(:AUTHORITY)% %UPSTREAM_HOST%\n"
           http_filters:
           - name: envoy.filters.http.oauth2-foo
+            disabled: true
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
               config:
@@ -64,6 +65,7 @@ static_resources:
                 - email
                 auth_type: BASIC_AUTH
           - name: envoy.filters.http.oauth2-bar
+            disabled: true
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
               config:
@@ -108,13 +110,6 @@ static_resources:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
           route_config:
             name: local_route
-            typed_per_filter_config:
-              envoy.filters.http.oauth2-foo:
-                "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                disabled: true
-              envoy.filters.http.oauth2-bar:
-                "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                disabled: true
             virtual_hosts:
             - name: service
               domains:
@@ -135,11 +130,7 @@ static_resources:
                 typed_per_filter_config:
                   envoy.filters.http.oauth2-bar:
                     "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                    config: {}
-              - match:    
-                  prefix: "/"
-                direct_response: 
-                  status: 404      
+                    config: {}      
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:

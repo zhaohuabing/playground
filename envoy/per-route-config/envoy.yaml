@@ -24,6 +24,7 @@ static_resources:
                   inline_string: "[%START_TIME%] %REQ(x-teg-oidcauthentication)% %REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL% %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% %REQ(X-FORWARDED-FOR)% %REQ(USER-AGENT)% %REQ(X-REQUEST-ID)% %REQ(:AUTHORITY)% %UPSTREAM_HOST%\n"
           http_filters:
           - name: envoy.filters.http.header_mutation_foo
+            disabled: true
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutation
               mutations:
@@ -34,6 +35,7 @@ static_resources:
                       value: foo
                     append_action: OVERWRITE_IF_EXISTS_OR_ADD
           - name: envoy.filters.http.header_mutation_bar
+            disabled: true
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.header_mutation.v3.HeaderMutation
               mutations:
@@ -47,14 +49,6 @@ static_resources:
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
           route_config:
-            name: local_route
-            typed_per_filter_config:
-              envoy.filters.http.header_mutation_foo:
-                "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                disabled: true
-              envoy.filters.http.header_mutation_bar:
-                "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                disabled: true
             virtual_hosts:
             - name: service
               domains:

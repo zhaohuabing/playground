@@ -24,12 +24,14 @@ static_resources:
                   inline_string: "[%START_TIME%] %REQ(x-teg-oidcauthentication)% %REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL% %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% %REQ(X-FORWARDED-FOR)% %REQ(USER-AGENT)% %REQ(X-REQUEST-ID)% %REQ(:AUTHORITY)% %UPSTREAM_HOST%\n"
           http_filters:
           - name: envoy.filters.http.basic_auth-foo
+            disabled: true
             typed_config:
               '@type': type.googleapis.com/envoy.extensions.filters.http.basic_auth.v3.BasicAuth
               users:
                 inline_string: |-
                     foo:{SHA}Ys23Ag/5IOWqZCw9QGaVDdHwH00=
           - name: envoy.filters.http.basic_auth-bar
+            disabled: true
             typed_config:
               '@type': type.googleapis.com/envoy.extensions.filters.http.basic_auth.v3.BasicAuth
               users:
@@ -40,13 +42,6 @@ static_resources:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
           route_config:
             name: local_route
-            typed_per_filter_config:
-              envoy.filters.http.basic_auth-foo:
-                "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                disabled: true
-              envoy.filters.http.basic_auth-bar:
-                "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                disabled: true
             virtual_hosts:
             - name: service
               domains:
@@ -68,10 +63,6 @@ static_resources:
                   envoy.filters.http.basic_auth-bar:
                     "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
                     config: {}
-              - match:    
-                  prefix: "/"
-                direct_response: 
-                  status: 404
   clusters:
   - name: local_service
     type: STRICT_DNS
