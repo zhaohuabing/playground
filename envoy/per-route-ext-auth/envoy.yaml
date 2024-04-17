@@ -52,13 +52,9 @@ static_resources:
               - "*"
               routes:
               - match:
-                  prefix: "/foo"
-                route:
-                  cluster: local_service
-                typed_per_filter_config:
-                  envoy.filters.http.ext_authz-foo:
-                    "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                    config: {}
+                  prefix: "/foo/bar/"
+                redirect:
+                  prefix_rewrite: /
               - match:
                   prefix: "/bar"
                 route:
