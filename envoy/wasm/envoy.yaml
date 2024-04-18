@@ -52,18 +52,6 @@ static_resources:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
 
   clusters:
-  - name: web_service
-    type: strict_dns
-    lb_policy: round_robin
-    load_assignment:
-      cluster_name: service1
-      endpoints:
-      - lb_endpoints:
-        - endpoint:
-            address:
-              socket_address:
-                address: web_service
-                port_value: 9000
   - name: envoy_http_wasm
     type: strict_dns
     lb_policy: round_robin

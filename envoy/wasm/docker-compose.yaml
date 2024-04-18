@@ -1,16 +1,9 @@
+version: '3'
 services:
-
-  proxy:
-    build:
-      context: .
-      dockerfile: Dockerfile-proxy
-    depends_on:
-    - web_service
+  envoy:
+    network_mode: "host"      
+    image: envoyproxy/envoy:dev-33c326495228e061be26632f79379d5d97ebd0e3
     ports:
-    - "8000:8000"
-
-  web_service:
-    environment:
-    - PORT=9000
-    build:
-      context: ../shared/echo
+      - "8000:8000"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
