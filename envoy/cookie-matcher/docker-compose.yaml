@@ -1,0 +1,13 @@
+services:
+  envoy:
+    build:
+      dockerfile: ../shared/envoy/Dockerfile
+      args:
+        ENVOY_IMAGE: zhaohuabing/envoy
+        ENVOY_VARIANT: cookie-matcher
+    ports:
+    - "${PORT_PROXY:-8080}:8080"
+    - "${PORT_ADMIN:-10001}:10001"
+  backend:
+    build:
+      context: ../shared/echo
