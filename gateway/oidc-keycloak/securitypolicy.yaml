@@ -135,3 +135,18 @@ data:
 kind: ConfigMap
 metadata:
   name: backend-tls-certificate
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: custom-proxy-config
+spec:
+  logging:
+    level:
+      default: debug
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        container:
+          image: zhaohuabing/envoy:csrf-fix-v20251219

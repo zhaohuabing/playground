@@ -31,6 +31,13 @@ kubectl patch gateway eg --type=json --patch '
         - kind: Secret
           group: ""
           name: example-cert
+  - op: add
+    path: /spec/infrastructure
+    value:
+      parametersRef:
+        group: gateway.envoyproxy.io
+        kind: EnvoyProxy
+        name: custom-proxy-config
   '
 
 $SCRIPT_DIR/enable-backend.sh
