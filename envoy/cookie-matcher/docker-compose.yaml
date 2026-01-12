@@ -4,7 +4,9 @@ services:
       dockerfile: ../shared/envoy/Dockerfile
       args:
         ENVOY_IMAGE: zhaohuabing/envoy
-        ENVOY_VARIANT: cookie-matcher
+        ENVOY_VARIANT: cookie-matcher-0110
+    volumes:
+    - ./envoy.yaml:/etc/envoy.yaml:ro
     ports:
     - "${PORT_PROXY:-8080}:8080"
     - "${PORT_ADMIN:-10001}:10001"

@@ -33,17 +33,17 @@ static_resources:
               - "*"
               routes:
               - match:
-                  prefix: /
-                  cookies:
-                  - name: session
+                  prefix: /test
+                  headers:
+                  - name: header1
                     string_match:
-                      exact: foo
-                route:
-                  cluster: httpbin_org
-              - match:
-                  prefix: /
+                      exact: "value1"
                   cookies:
-                  - name: session
+                  - name: cookie1
+                    string_match:
+                      exact: "foo"
+                    invert_match: true
+                  - name: cookie2 
                     string_match:
                       prefix: bar
                 route:
