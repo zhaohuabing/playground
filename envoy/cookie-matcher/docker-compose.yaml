@@ -4,7 +4,7 @@ services:
       dockerfile: ../shared/envoy/Dockerfile
       args:
         ENVOY_IMAGE: zhaohuabing/envoy
-        ENVOY_VARIANT: cookie-matcher-0110
+        ENVOY_VARIANT: cookie-matcher-0112
     volumes:
     - ./envoy.yaml:/etc/envoy.yaml:ro
     ports:
