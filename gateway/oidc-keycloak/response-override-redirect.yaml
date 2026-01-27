@@ -1,0 +1,32 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  namespace: default
+  name: response-override-foo
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: foo
+  responseOverride:
+    - match:
+        statusCodes:
+          - type: Value
+            value: 401
+          - type: Value
+            value: 403
+      redirect:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /error
+        statusCode: 302
+
+    - match:
+        statusCodes:
+          - type: Value
+            value: 200
+      redirect:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /success
+        statusCode: 302
