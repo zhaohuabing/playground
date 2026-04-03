@@ -26,7 +26,6 @@ static_resources:
           - name: envoy.filters.http.oauth2
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
-              config: {}
           - name: envoy.filters.http.router
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -94,10 +93,6 @@ static_resources:
                   prefix: "/bar"
                 route:
                   cluster: local_service
-                typed_per_filter_config:
-                  envoy.filters.http.oauth2:
-                    "@type":  type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2PerRoute
-                    config: {}
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
