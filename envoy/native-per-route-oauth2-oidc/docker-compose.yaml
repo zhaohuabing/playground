@@ -2,6 +2,9 @@ services:
   envoy:
     build:
       dockerfile: ../shared/envoy/Dockerfile
+      args:
+        ENVOY_IMAGE: zhaohuabing/envoy
+        ENVOY_VARIANT: per-route
     ports:
     - "${PORT_PROXY:-443}:443"
     - "${PORT_ADMIN:-10001}:10001"
