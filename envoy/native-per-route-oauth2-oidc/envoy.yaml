@@ -23,112 +23,10 @@ static_resources:
                 text_format_source:
                   inline_string: "[%START_TIME%] %REQ(x-teg-oidcauthentication)% %REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL% %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT% %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% %REQ(X-FORWARDED-FOR)% %REQ(USER-AGENT)% %REQ(X-REQUEST-ID)% %REQ(:AUTHORITY)% %UPSTREAM_HOST%\n"
           http_filters:
-          - name: envoy.filters.http.oauth2-foo
-            disabled: true
+          - name: envoy.filters.http.oauth2
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
-              config:
-                token_endpoint:
-                  cluster: google_oauth2
-                  uri: https://oauth2.googleapis.com/token
-                  timeout: 3s
-                authorization_endpoint: https://accounts.google.com/o/oauth2/v2/auth
-                redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/foo/callback"
-                redirect_path_matcher:
-                  path:
-                    exact: /foo/callback
-                signout_path:
-                  path:
-                    exact: /foo/signout
-                forward_bearer_token: true
-                cookie_configs:
-                  bearer_token_cookie_config:
-                    path: "/foo"
-                  oauth_hmac_cookie_config: 
-                    path: "/foo"
-                  oauth_expires_cookie_config: 
-                    path: "/foo"
-                  id_token_cookie_config: 
-                    path: "/foo"
-                  refresh_token_cookie_config:
-                    path: "/foo"
-                  oauth_nonce_cookie_config:
-                    path: "/foo"
-                  code_verifier_cookie_config:
-                    path: "/foo"
-                credentials:
-                  client_id: 847245978881-8avfr3498gmobafdouuc184u647er1ii.apps.googleusercontent.com 
-                  token_secret:
-                    name: foo_client_secret
-                    sds_config:
-                      path_config_source:
-                        path: "/etc/foo-client-secret.yaml"
-                  hmac_secret:
-                    name: hmac
-                    sds_config:
-                      path_config_source:
-                        path: "/etc/hmac-secret.yaml"
-                # (Optional): defaults to 'user' scope if not provided
-                auth_scopes:
-                - openid
-                - email
-                auth_type: BASIC_AUTH
-          - name: envoy.filters.http.oauth2-bar
-            disabled: true
-            typed_config:
-              "@type": type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2
-              config:
-                token_endpoint:
-                  cluster: auth0
-                  uri: https://samples.auth0.com/oauth/token
-                  timeout: 3s
-                authorization_endpoint: https://samples.auth0.com/authorize
-                redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/oauth2/callback"
-                redirect_path_matcher:
-                  path:
-                    exact: /oauth/callback
-                signout_path:
-                  path:
-                    exact: /signout
-                forward_bearer_token: true
-                cookie_configs:
-                  bearer_token_cookie_config:
-                    path: "/bar"
-                  oauth_hmac_cookie_config: 
-                    path: "/bar"
-                  oauth_expires_cookie_config: 
-                    path: "/bar"
-                  id_token_cookie_config: 
-                    path: "/bar"
-                  refresh_token_cookie_config:
-                    path: "/bar"
-                  oauth_nonce_cookie_config:
-                    path: "/bar"
-                  code_verifier_cookie_config:
-                    path: "/bar"
-                credentials:
-                  client_id: kbyuFDidLLm280LIwVFiazOqjO3ty8KH
-                  token_secret:
-                    name: client_secret
-                    sds_config:
-                      path_config_source:
-                        path: "/etc/foo-client-secret.yaml"
-                  hmac_secret:
-                    name: hmac
-                    sds_config:
-                      path_config_source:
-                        path: "/etc/hmac-secret.yaml"
-                  cookie_names:
-                    bearer_token: "EnvoyOauthBearerToken-bar"
-                    oauth_hmac: "EnvoyOauthHMAC-bar"
-                    oauth_expires: "EnvoyOauthExpires-bar"
-                    id_token: "EnvoyOauthIdToken-bar"
-                    refresh_token: "EnvoyOauthRefreshToken-bar"
-                # (Optional): defaults to 'user' scope if not provided
-                auth_scopes:
-                - openid
-                - email
-                auth_type: BASIC_AUTH
+              config: {}
           - name: envoy.filters.http.router
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -144,17 +42,62 @@ static_resources:
                 route:
                   cluster: local_service
                 typed_per_filter_config:
-                  envoy.filters.http.oauth2-foo:
-                    "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                    config: {}
+                  envoy.filters.http.oauth2:
+                    "@type":  type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2PerRoute
+                    config:
+                      token_endpoint:
+                        cluster: google_oauth2
+                        uri: https://oauth2.googleapis.com/token
+                        timeout: 3s
+                      authorization_endpoint: https://accounts.google.com/o/oauth2/v2/auth
+                      redirect_uri: "%REQ(x-forwarded-proto)%://%REQ(:authority)%/foo/callback"
+                      redirect_path_matcher:
+                        path:
+                          exact: /foo/callback
+                      signout_path:
+                        path:
+                          exact: /foo/signout
+                      forward_bearer_token: true
+                      cookie_configs:
+                        bearer_token_cookie_config:
+                          path: "/foo"
+                        oauth_hmac_cookie_config:
+                          path: "/foo"
+                        oauth_expires_cookie_config:
+                          path: "/foo"
+                        id_token_cookie_config:
+                          path: "/foo"
+                        refresh_token_cookie_config:
+                          path: "/foo"
+                        oauth_nonce_cookie_config:
+                          path: "/foo"
+                        code_verifier_cookie_config:
+                          path: "/foo"
+                      credentials:
+                        client_id: 847245978881-8avfr3498gmobafdouuc184u647er1ii.apps.googleusercontent.com
+                        token_secret:
+                          name: foo_client_secret
+                          sds_config:
+                            path_config_source:
+                              path: "/etc/foo-client-secret.yaml"
+                        hmac_secret:
+                          name: hmac
+                          sds_config:
+                            path_config_source:
+                              path: "/etc/hmac-secret.yaml"
+                        # (Optional): defaults to 'user' scope if not provided
+                        auth_scopes:
+                        - openid
+                        - email
+                        auth_type: BASIC_AUTH
               - match:
                   prefix: "/bar"
                 route:
                   cluster: local_service
                 typed_per_filter_config:
-                  envoy.filters.http.oauth2-bar:
-                    "@type":  type.googleapis.com/envoy.config.route.v3.FilterConfig
-                    config: {}      
+                  envoy.filters.http.oauth2:
+                    "@type":  type.googleapis.com/envoy.extensions.filters.http.oauth2.v3.OAuth2PerRoute
+                    config: {}
       transport_socket:
         name: envoy.transport_sockets.tls
         typed_config:
