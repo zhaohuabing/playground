@@ -1,0 +1,258 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+# Client-facing Gateway. The listeners are attached with the
+# external-gateway-listeners ListenerSet.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: external-gateway
+  namespace: default
+spec:
+  gatewayClassName: eg
+  allowedListeners:
+    namespaces:
+      from: Same
+  listeners:
+    # We declare a "fallback" listener here with NO hostname definition. Legacy clients that do not send the SNI will
+    # get to this listener.
+    # This could be moved to a ListenerSet as well (but note that the Gateway has a validation, and the list of listeners cannot be empty,
+    # so we conveniently define the fallback here.
+    - name: legacy
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+        - kind: Secret
+          group: ""
+          name: legacy-cert
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: All
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: external-gateway-listeners
+  namespace: default
+spec:
+  parentRef:
+    name: external-gateway
+  listeners:
+    - name: ssl-proxy # This listener is for the SNI/Host mismatch path: SNI  = ssl-proxy-ng.dvb.corpinter.net and Host = hu-services-ng.dvb.corpinter.net or other-service-ng.dvb.corpinter.net. The external Gateway will terminate TLS for this path, and forward the decrypted stream to the internal Gateway for HTTP Host based route selection.
+      protocol: TLS
+      port: 443
+      hostname: ssl-proxy-ng.dvb.corpinter.net
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: ssl-proxy-ng-cert
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: TLSRoute
+        namespaces:
+          from: All
+    - name: hu-services # This listener is for the normal case: SNI  = hu-services-ng.dvb.corpinter.net and Host = hu-services-ng.dvb.corpinter.net. The external Gateway will terminate TLS and perform HTTP Host based route selection for this path.
+      protocol: HTTPS
+      port: 443
+      hostname: hu-services-ng.dvb.corpinter.net
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: hu-services-ng-cert
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: All
+    - name: other-service # This listener is for the normal case: SNI  = other-service-ng.dvb.corpinter.net and Host = other-service-ng.dvb.corpinter.net. The external Gateway will terminate TLS and perform HTTP Host based route selection for this path.
+      protocol: HTTPS
+      port: 443
+      hostname: other-service-ng.dvb.corpinter.net
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - group: ""
+            kind: Secret
+            name: other-service-ng-cert
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: All
+---
+# Internal Gateway used only after the external Gateway has terminated TLS for
+# traffic whose SNI and HTTP Host are intentionally different.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: internal-gateway
+  namespace: default
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: All
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: internal-gateway-proxy
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: internal-gateway-proxy
+  namespace: default
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService: 
+        name: internal-gateway-envoy
+        # The internal gateway doesn't need to be exposed, so we configure a ClusterIP.
+        type: ClusterIP
+---
+# Mismatch case:
+#   SNI  = ssl-proxy-ng.dvb.corpinter.net
+#   Host = hu-services-ng.dvb.corpinter.net or other-service-ng.dvb.corpinter.net
+#
+# The external Gateway terminates TLS for this path. The decrypted stream is
+# forwarded to the internal Gateway, which performs HTTP Host based route
+# selection.
+apiVersion: gateway.networking.k8s.io/v1
+kind: TLSRoute
+metadata:
+  name: ssl-proxy-to-internal-gateway
+  namespace: default
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: ListenerSet
+      name: external-gateway-listeners
+      sectionName: ssl-proxy
+  hostnames:
+    - ssl-proxy-ng.dvb.corpinter.net
+  rules:
+    - backendRefs:
+        # Fixed by internal-gateway-proxy.spec.provider.kubernetes.envoyService.name.
+        - group: ""
+          kind: Service
+          name: internal-gateway-envoy
+          namespace: envoy-gateway-system
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-default-tlsroute-to-internal-gateway-envoy
+  namespace: envoy-gateway-system
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: TLSRoute
+      namespace: default
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: default
+  to:
+    - group: ""
+      kind: Service
+      name: internal-gateway-envoy
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hu-services
+  namespace: default
+spec:
+  parentRefs:
+    - kind: Gateway
+      name: internal-gateway # Internal app route for the mismatch path: SNI  = ssl-proxy-ng.dvb.corpinter.net and Host = hu-services-ng.dvb.corpinter.net
+      sectionName: http
+    - kind: ListenerSet
+      name: external-gateway-listeners # Normal case: SNI  = hu-services-ng.dvb.corpinter.net and Host = hu-services-ng.dvb.corpinter.net
+      sectionName: hu-services
+    - kind: Gateway
+      name: external-gateway
+      sectionName: legacy
+  hostnames:
+    - hu-services-ng.dvb.corpinter.net
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: hu-services
+          port: 3000
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: other-service
+  namespace: default
+spec:
+  parentRefs:
+    - kind: Gateway
+      name: internal-gateway # Internal app route for the mismatch path: SNI  = ssl-proxy-ng.dvb.corpinter.net and Host = other-service-ng.dvb.corpinter.net
+      sectionName: http
+    - kind: ListenerSet
+      name: external-gateway-listeners # Normal case: SNI  = other-service-ng.dvb.corpinter.net and Host = other-service-ng.dvb.corpinter.net
+      sectionName: other-service
+  hostnames:
+    - other-service-ng.dvb.corpinter.net
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: other-service
+          port: 3000
+      matches:
+        - path:
+            type: PathPrefix
+            value: /
+---
+# Force 100% tracing for hu-services on both the direct/normal path and the
+# SNI/Host mismatch path.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: hu-services-tracing
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: hu-services
+  telemetry:
+    tracing:
+      samplingFraction:
+        numerator: 100
+        denominator: 100
