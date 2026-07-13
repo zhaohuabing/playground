@@ -1,0 +1,17 @@
+# Attaches the my-filter filter (from the composer dynamic module) to the `eg`
+# Gateway. `name` matches EnvoyProxy.spec.dynamicModules[].name; `filterName`
+# matches the plugin's ExtensionName / manifest name (my-filter).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyExtensionPolicy
+metadata:
+  name: my-filter-extension
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: eg
+  dynamicModule:
+    - name: composer
+      filterName: my-filter
+      config: {}

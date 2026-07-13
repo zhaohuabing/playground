@@ -1,0 +1,40 @@
+# EnvoyProxy that mounts the custom composer image as a volume and loads
+# libcomposer.so as an Envoy dynamic module. Linked to the `eg` GatewayClass via
+# the parametersRef patch in install.sh.
+#
+# install.sh substitutes __COMPOSER_IMAGE__ with $COMPOSER_IMAGE (the image built
+# and pushed by ../build.sh, e.g. ghcr.io/<you>/composer:0.10.0-dev).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: composer-proxy
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        pod:
+          volumes:
+            - name: dynamic-modules
+              image:
+                reference: __COMPOSER_IMAGE__
+                pullPolicy: IfNotPresent
+        container:
+          # The Composer module is cgo; disable Go's cgo pointer checks in Envoy.
+          env:
+            - name: GODEBUG
+              value: "cgocheck=0"
+          volumeMounts:
+            - name: dynamic-modules
+              mountPath: /etc/envoy/dynamic-modules
+              readOnly: true
+  # Declares the dynamic module Envoy should load from the mounted volume.
+  dynamicModules:
+    - name: composer
+      source:
+        type: Local
+        local:
+          path: /etc/envoy/dynamic-modules/libcomposer.so
+      doNotClose: true
+      loadGlobally: false

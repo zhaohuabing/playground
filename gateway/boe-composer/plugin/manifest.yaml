@@ -1,0 +1,29 @@
+# Copyright Built On Envoy
+# SPDX-License-Identifier: Apache-2.0
+
+name: my-filter
+parent: composer
+categories:
+  - Examples
+author: Huabing (Robin) Zhao
+description: Minimal example composer embedded go plugin for HTTP filters
+longDescription: |
+  A minimal HTTP filter plugin written in Go that demonstrates how to extend the
+  Composer Dynamic Module. It stamps a single response header
+  (`x-hello: built-on-envoy`) so a successful load can be observed end-to-end.
+
+  This is the embedded version of the plugin, compiled directly into
+  libcomposer.so together with the host, guaranteeing Go runtime and dependency
+  compatibility.
+type: go
+tags:
+  - go
+  - http
+  - filter
+  - example
+license: Apache-2.0
+examples:
+  - title: Basic Example
+    description: Load the my-filter plugin as an HTTP filter
+    code: |
+      boe run --extension my-filter
