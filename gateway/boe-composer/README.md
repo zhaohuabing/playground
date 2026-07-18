@@ -60,6 +60,10 @@ eg/
 ## Prerequisites
 
 - An existing Kubernetes cluster (`kubectl` configured) whose nodes can pull your image.
+- **Kubernetes 1.35+** — the `EnvoyProxy` mounts the module as an OCI **image volume**,
+  which Envoy Gateway only renders on k8s 1.35 or newer. On older clusters the volume
+  is silently dropped and Envoy fails with `libcomposer.so: cannot open shared object
+  file`. See [Notes & caveats](#notes--caveats) for the workaround on < 1.35.
 - `helm`, `docker` (with `buildx`), `curl`, and `make`.
 - Push access to a registry (`docker login`) — e.g. GHCR.
 - No local Go toolchain is required for the image build (Go is used inside the
@@ -119,6 +123,22 @@ kubectl -n envoy-gateway-system logs -l gateway.envoyproxy.io/owning-gateway-nam
   move to a newer composer, bump both the `require` in `go.mod` (run `go mod tidy`)
   and `TAG` in the Makefile, and confirm the new `minEnvoyVersion` still matches
   your EG's Envoy version.
+- **Requires Kubernetes 1.35+ for the image-volume mount.** EG only renders the
+  `envoyDeployment.pod.volumes[].image` OCI image volume on k8s **1.35+**. On older
+  clusters (verified on 1.33 and 1.34) EG omits the volume entirely, so
+  `/etc/envoy/dynamic-modules/libcomposer.so` is missing and Envoy NACKs the listener
+  with `Failed to load dynamic module ... cannot open shared object file`. Confirm with:
+  ```bash
+  kubectl version | grep Server
+  kubectl -n envoy-gateway-system get deploy \
+    -l gateway.envoyproxy.io/owning-gateway-name=eg \
+    -o jsonpath='{.items[0].spec.template.spec.volumes[?(@.name=="dynamic-modules")]}'
+  # empty output => EG didn't render the image volume => cluster is < 1.35
+  ```
+  **Workaround for < 1.35:** replace the image volume with an `emptyDir` + an
+  `initContainer` that copies `/libcomposer.so` into it. That needs the composer image
+  to carry `cp` (the default image is `FROM scratch`), so rebuild it on a minimal base
+  such as `busybox` first.
 - **Dynamic Modules is experimental in EG 1.8.** If `EnvoyProxy.spec.dynamicModules`
   is rejected, your cluster's EG CRDs predate 1.8.2 — `install.sh` upgrades the chart,
   but a stale separate CRD install may need refreshing.
