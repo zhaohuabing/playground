@@ -52,9 +52,9 @@ Dockerfile          # cgo c-shared build → OCI image with libcomposer.so at ro
 Makefile            # build / test / build_image / push_image (adapted from teg, non-FIPS)
 eg/
   envoyproxy.yaml            # mounts the image + declares the dynamic module
-  envoyextensionpolicy.yaml  # attaches filterName: my-filter to the eg Gateway
+  envoyextensionpolicy.yaml  # attaches coraza-waf + my-filter to the eg Gateway (in order)
   install.sh                 # helm install EG 1.8.2 + quickstart + wiring
-  verify.sh                  # curl through the Gateway, assert the header
+  verify.sh                  # normal req passes & is stamped; SQLi is blocked by the WAF
 ```
 
 ## Prerequisites
@@ -115,6 +115,29 @@ To confirm from the module side:
 kubectl get envoyextensionpolicy my-filter-extension -o yaml   # expect Accepted / Programmed
 kubectl -n envoy-gateway-system logs -l gateway.envoyproxy.io/owning-gateway-name=eg -c envoy | grep -i dynamic
 ```
+
+## Chaining filters: WAF + my-filter
+
+`coraza-waf` is one of the plugins already embedded in the module, so you can attach
+it alongside `my-filter` in a single `EnvoyExtensionPolicy` — the `dynamicModule` list
+is ordered, and both share `name: composer` (only `filterName` differs). Every request
+then flows through both:
+
+```
+request ──▶ coraza-waf (OWASP CRS, blocking) ──▶ my-filter ──▶ backend
+```
+
+```bash
+kubectl apply -f eg/envoyextensionpolicy-waf.yaml   # replaces the my-filter-only policy
+./eg/verify-waf.sh
+```
+
+Expected:
+- a normal request → `200` with `x-hello: built-on-envoy` (allowed by the WAF, stamped by my-filter);
+- a SQL-injection request → `403 Forbidden` (blocked by the WAF). The `x-hello` header is
+  still present on the 403, which shows the response traversed my-filter too.
+
+To go back to my-filter only: `kubectl apply -f eg/envoyextensionpolicy.yaml`.
 
 ## Notes & caveats
 

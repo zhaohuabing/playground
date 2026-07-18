@@ -1,6 +1,15 @@
-# Attaches the my-filter filter (from the composer dynamic module) to the `eg`
-# Gateway. `name` matches EnvoyProxy.spec.dynamicModules[].name; `filterName`
-# matches the plugin's ExtensionName / manifest name (my-filter).
+# Attaches filters from the composer dynamic module to the `eg` Gateway. Both
+# filters live in the same libcomposer.so, so `name` is `composer` for both and
+# only `filterName` differs; `dynamicModule` is an ordered list, so every request
+# flows through them in order:
+#
+#   request ──▶ coraza-waf (OWASP CRS, blocking) ──▶ my-filter ──▶ backend
+#                     │                                   │
+#              blocks malicious                    stamps x-hello
+#              requests with 403                   on the response
+#
+# `name` matches EnvoyProxy.spec.dynamicModules[].name; `filterName` matches each
+# plugin's ExtensionName / manifest name.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyExtensionPolicy
 metadata:
@@ -12,6 +21,17 @@ spec:
       kind: Gateway
       name: eg
   dynamicModule:
+    # 1) WAF runs first on the request path (OWASP CRS with enforcement enabled).
+    - name: composer
+      filterName: coraza-waf
+      config:
+        directives:
+          - "Include @coraza.conf"
+          - "SecRuleEngine On"
+          - "SecResponseBodyAccess Off"
+          - "Include @crs-setup.conf"
+          - "Include @owasp_crs/*.conf"
+    # 2) my-filter stamps `x-hello: built-on-envoy` on the response of allowed requests.
     - name: composer
       filterName: my-filter
       config: {}
