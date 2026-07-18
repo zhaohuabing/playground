@@ -3,7 +3,7 @@
 # the parametersRef patch in install.sh.
 #
 # install.sh substitutes __COMPOSER_IMAGE__ with $COMPOSER_IMAGE (the image built
-# and pushed by ../build.sh, e.g. ghcr.io/<you>/composer:0.10.0-dev).
+# and pushed by `make push_image`, e.g. ghcr.io/<you>/composer:0.9.0).
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:

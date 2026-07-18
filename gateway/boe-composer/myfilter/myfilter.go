@@ -4,9 +4,9 @@
 // Package myfilter is a minimal example Composer plugin: an HTTP filter that
 // stamps a single response header so a successful load is observable end-to-end.
 //
-// Overlaid onto a built-on-envoy checkout at extensions/composer/myfilter by
-// ../build.sh. It has no go.mod of its own: every embedded Composer plugin shares
-// the single go.mod at extensions/composer/.
+// It depends only on the public dynamic-modules Go SDK, so it lives in this
+// module and is compiled into libcomposer.so by blank-importing ./embedded from
+// the root main.go — no built-on-envoy checkout or overlay required.
 package myfilter
 
 import shared "github.com/envoyproxy/envoy/source/extensions/dynamic_modules/sdk/go/shared"

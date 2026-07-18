@@ -1,21 +1,18 @@
 // Copyright Built On Envoy
 // SPDX-License-Identifier: Apache-2.0
 
-//go:build !lite
-
 // Package main builds the Composer shared library (libcomposer.so). It registers
-// the required dynamic-module ABI, all in-tree Built-On-Envoy plugins, and our
-// custom my-filter example plugin.
+// the required dynamic-module ABI, all Built-On-Envoy composer plugins (consumed
+// as a pinned Go module dependency), and our custom my-filter example plugin.
 //
-// build.sh overlays this file onto extensions/composer/main/main.go, replacing
-// the upstream version that blank-imports the whole composer package. We keep the
-// full upstream plugin set here and simply add our my-filter plugin to it.
+// This module is self-contained: `go build -buildmode=c-shared` pulls composer
+// from the Go module proxy — no built-on-envoy checkout or file overlay needed.
 package main
 
 import (
 	_ "github.com/envoyproxy/envoy/source/extensions/dynamic_modules/sdk/go/abi"
 
-	// All in-tree Built-On-Envoy plugins (mirrors extensions/composer/plugins.go).
+	// All Built-On-Envoy composer plugins (mirrors extensions/composer/plugins.go).
 	_ "github.com/tetratelabs/built-on-envoy/extensions/composer/anthropic-decoder/embedded"        // Anthropic Decoder plugin.
 	_ "github.com/tetratelabs/built-on-envoy/extensions/composer/azure-content-safety/embedded"     // Azure Content Safety plugin.
 	_ "github.com/tetratelabs/built-on-envoy/extensions/composer/bedrock-guardrails/embedded"       // Bedrock Guardrails plugin.
@@ -36,7 +33,7 @@ import (
 	_ "github.com/tetratelabs/built-on-envoy/extensions/composer/waf/embedded"               // WAF plugin.
 
 	// Our custom example plugin.
-	_ "github.com/tetratelabs/built-on-envoy/extensions/composer/myfilter/embedded" // my-filter example plugin.
+	_ "github.com/zhaohuabing/boe-composer/myfilter/embedded" // my-filter example plugin.
 )
 
 func main() {} // main is required to build as a C shared library.

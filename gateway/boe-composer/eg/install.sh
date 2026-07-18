@@ -6,16 +6,16 @@
 # dynamic module and the my-filter filter.
 #
 # Env vars:
-#   COMPOSER_IMAGE  the image built & pushed by ../build.sh
-#                   (e.g. ghcr.io/<you>/composer:0.10.0-dev). REQUIRED.
+#   COMPOSER_IMAGE  the image built & pushed by `make push_image`
+#                   (e.g. ghcr.io/<you>/composer:0.9.0). REQUIRED.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EG_VERSION="v1.8.2"
 
 if [ -z "${COMPOSER_IMAGE:-}" ]; then
-  echo "ERROR: set COMPOSER_IMAGE to the image produced by ../build.sh" >&2
-  echo "       e.g. COMPOSER_IMAGE=ghcr.io/you/composer:0.10.0-dev $0" >&2
+  echo "ERROR: set COMPOSER_IMAGE to the image produced by \`make push_image\`" >&2
+  echo "       e.g. COMPOSER_IMAGE=ghcr.io/you/composer:0.9.0 $0" >&2
   exit 1
 fi
 
