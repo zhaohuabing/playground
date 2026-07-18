@@ -62,7 +62,7 @@ eg/
   is silently dropped and Envoy fails with `libcomposer.so: cannot open shared object
   file`. See [Notes & caveats](#notes--caveats) for the workaround on < 1.35.
 - `helm`, `docker` (with `buildx`), `curl`, and `make`.
-- Push access to a registry (`docker login`) — e.g. GHCR.
+- Push access to a registry (`docker login`) — e.g. Docker Hub.
 - No local Go toolchain is required for the image build (Go is used inside the
   builder). For `make build`/`make test` locally you need Go 1.26.x.
 
@@ -70,13 +70,13 @@ eg/
 
 ```bash
 cd gateway/boe-composer
-make push_image                       # defaults to HUB=ghcr.io/zhaohuabing, TAG=0.9.0
-# override: make push_image HUB=ghcr.io/<you> TAG=<tag>
+make push_image                       # defaults to HUB=docker.io/zhaohuabing, TAG=0.9.0
+# override: make push_image HUB=docker.io/<you> TAG=<tag>
 # single arch / local load only:  make build_image PLATFORMS=linux/arm64
 ```
 
 `push_image` builds a multi-arch image and pushes `$(HUB)/composer:$(TAG)`
-(default `ghcr.io/zhaohuabing/composer:0.9.0`). Make sure the repo is pullable by
+(default `docker.io/zhaohuabing/composer:0.9.0`). Make sure the repo is pullable by
 the cluster (public, or add an imagePullSecret).
 
 To build/test locally without Docker:
@@ -89,7 +89,7 @@ make build    # produces libcomposer.so for your host platform
 ## 2. Deploy on the cluster
 
 ```bash
-COMPOSER_IMAGE=ghcr.io/zhaohuabing/composer:0.9.0 ./eg/install.sh
+COMPOSER_IMAGE=docker.io/zhaohuabing/composer:0.9.0 ./eg/install.sh
 ```
 
 This installs Envoy Gateway 1.8.2, applies the EG quickstart (Gateway `eg`, an
