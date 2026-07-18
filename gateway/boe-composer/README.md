@@ -1,6 +1,6 @@
 # Minimal Composer extension on Envoy Gateway 1.8.2
 
-A minimal example of **extending Tetrate's [Built On Envoy](https://github.com/tetratelabs/built-on-envoy)
+A minimal example of **extending [Built On Envoy](https://github.com/tetratelabs/built-on-envoy)
 `composer` dynamic module** with your own Go HTTP filter, then running it on an
 existing **Envoy Gateway 1.8.2** cluster.
 
@@ -14,10 +14,7 @@ loaded into the Envoy data plane. Envoy Gateway 1.8 ships Envoy **1.38.0**, whic
 matches composer `v0.9.0`'s `minEnvoyVersion: 1.38.0`.
 
 This is a **self-contained Go module**: it consumes built-on-envoy's composer
-packages as a pinned dependency (`go.mod`) instead of cloning the repo. It follows
-the same pattern as [tetrateio/envoy-dynamic-modules/teg](https://github.com/tetrateio/envoy-dynamic-modules/blob/main/teg/Makefile)
-(minus FIPS), so `go build -buildmode=c-shared` pulls everything from the Go module
-proxy — no checkout, no file overlay.
+packages as a pinned dependency (`go.mod`) instead of cloning the repo.
 
 ```
 myfilter/myfilter.go ─ OnResponseHeaders stamps a header
@@ -31,7 +28,7 @@ main.go ─────────── blank-imports all BoE composer plugins
 make push_image ─── builds & pushes the OCI image via the local Dockerfile
        ▼
 EnvoyProxy ───────── mounts the image, loads /etc/envoy/dynamic-modules/libcomposer.so
-EnvoyExtensionPolicy → attaches filterName: my-filter to the eg Gateway
+EnvoyExtensionPolicy → attaches coraza-waf + my-filter to the eg Gateway (in order)
 ```
 
 Our `main.go` registers the full upstream plugin set (Coraza WAF, OPA, Cedar,
@@ -106,8 +103,22 @@ HTTPRoute for `www.example.com`, and a backend app), applies the `EnvoyProxy`
 ./eg/verify.sh
 ```
 
-Expected: HTTP 200 with `x-hello: built-on-envoy`. The script also prints debug
-hints (policy status, proxy logs) on failure.
+The `EnvoyExtensionPolicy` chains **both** composer filters, so every request flows
+through them in order:
+
+```
+request ──▶ coraza-waf (OWASP CRS, blocking) ──▶ my-filter ──▶ backend
+```
+
+Expected from `verify.sh`:
+- a normal request → `200` with `x-hello: built-on-envoy` (allowed by the WAF, stamped by my-filter);
+- a SQL-injection request → `403 Forbidden` (blocked by the WAF). The `x-hello` header is
+  still present on the 403, which shows the response traversed my-filter too.
+
+Both filters are just two entries in one policy — same `name: composer` (they share the
+embedded `libcomposer.so`), differing only by `filterName`; `dynamicModule` is an ordered
+list, so their position sets the filter-chain order. To run my-filter alone, drop the
+`coraza-waf` entry from `eg/envoyextensionpolicy.yaml`.
 
 To confirm from the module side:
 
@@ -115,29 +126,6 @@ To confirm from the module side:
 kubectl get envoyextensionpolicy my-filter-extension -o yaml   # expect Accepted / Programmed
 kubectl -n envoy-gateway-system logs -l gateway.envoyproxy.io/owning-gateway-name=eg -c envoy | grep -i dynamic
 ```
-
-## Chaining filters: WAF + my-filter
-
-`coraza-waf` is one of the plugins already embedded in the module, so you can attach
-it alongside `my-filter` in a single `EnvoyExtensionPolicy` — the `dynamicModule` list
-is ordered, and both share `name: composer` (only `filterName` differs). Every request
-then flows through both:
-
-```
-request ──▶ coraza-waf (OWASP CRS, blocking) ──▶ my-filter ──▶ backend
-```
-
-```bash
-kubectl apply -f eg/envoyextensionpolicy-waf.yaml   # replaces the my-filter-only policy
-./eg/verify-waf.sh
-```
-
-Expected:
-- a normal request → `200` with `x-hello: built-on-envoy` (allowed by the WAF, stamped by my-filter);
-- a SQL-injection request → `403 Forbidden` (blocked by the WAF). The `x-hello` header is
-  still present on the 403, which shows the response traversed my-filter too.
-
-To go back to my-filter only: `kubectl apply -f eg/envoyextensionpolicy.yaml`.
 
 ## Notes & caveats
 
@@ -172,6 +160,5 @@ To go back to my-filter only: `kubectl apply -f eg/envoyextensionpolicy.yaml`.
 
 ## References
 
-- teg (the pattern this follows): <https://github.com/tetrateio/envoy-dynamic-modules/blob/main/teg/Makefile>
 - Reference plugin example: <https://github.com/tetratelabs/built-on-envoy/tree/main/extensions/composer/example>
 - Envoy Gateway dynamic modules: <https://gateway.envoyproxy.io/v1.8/tasks/extensibility/dynamic-modules/>
