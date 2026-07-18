@@ -2,8 +2,8 @@
 # libcomposer.so as an Envoy dynamic module. Linked to the `eg` GatewayClass via
 # the parametersRef patch in install.sh.
 #
-# install.sh substitutes __COMPOSER_IMAGE__ with $COMPOSER_IMAGE (the image built
-# and pushed by `make push_image`, e.g. ghcr.io/<you>/composer:0.9.0).
+# install.sh substitutes __COMPOSER_IMAGE__ with $COMPOSER_IMAGE, which defaults
+# to the published Docker Hub image docker.io/zhaohuabing/composer:0.9.0.
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:

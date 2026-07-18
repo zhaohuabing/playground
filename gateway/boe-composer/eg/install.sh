@@ -6,18 +6,13 @@
 # dynamic module and the my-filter filter.
 #
 # Env vars:
-#   COMPOSER_IMAGE  the image built & pushed by `make push_image`
-#                   (e.g. ghcr.io/<you>/composer:0.9.0). REQUIRED.
+#   COMPOSER_IMAGE  the composer dynamic-module image to mount. Defaults to the
+#                   published Docker Hub image docker.io/zhaohuabing/composer:0.9.0.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EG_VERSION="v1.8.2"
-
-if [ -z "${COMPOSER_IMAGE:-}" ]; then
-  echo "ERROR: set COMPOSER_IMAGE to the image produced by \`make push_image\`" >&2
-  echo "       e.g. COMPOSER_IMAGE=ghcr.io/you/composer:0.9.0 $0" >&2
-  exit 1
-fi
+COMPOSER_IMAGE="${COMPOSER_IMAGE:-docker.io/zhaohuabing/composer:0.9.0}"
 
 echo ">> Installing Envoy Gateway ${EG_VERSION}"
 helm upgrade --install eg oci://docker.io/envoyproxy/gateway-helm \

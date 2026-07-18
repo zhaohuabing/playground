@@ -1,7 +1,7 @@
 # Build & push the custom Composer dynamic module (libcomposer.so) as an OCI
 # image.
 
-HUB               ?= ghcr.io/zhaohuabing
+HUB               ?= docker.io/zhaohuabing
 NAME              ?= composer
 # Keep in sync with the built-on-envoy/extensions/composer version pinned in go.mod.
 TAG               ?= 0.9.0
@@ -64,39 +64,6 @@ create_builder:
 		docker buildx create --name $(BUILDER_NAME) \
 			--driver docker-container --driver-opt network=host \
 			--buildkitd-flags '--allow-insecure-entitlement network.host' --use
-
-##@ Local run
-
-BOE_LISTEN_PORT ?= 10000
-BOE_ADMIN_PORT  ?= 9901
-BOE_LOG_LEVEL   ?= dynamic_modules:debug
-
-# Run my-filter locally via boe. boe's --local path builds the standalone Go
-# plugin (myfilter/standalone) and loads it into the composer host through the
-# goplugin-loader.
-#
-#   * Linux:  runs natively  ->  make boe-run
-#   * macOS:  no darwin composer host is published, so run in a Linux container:
-#               make boe-run BOE_DOCKER=--docker
-#
-# Requires: boe (matching this module's composer/Envoy version) and Go 1.26.x on
-# PATH to build the plugin. If boe can't find the parent, run `boe download
-# composer` once first.
-BOE_DOCKER ?=
-# boe run reads extensions from its data-home; `boe download` defaults its output
-# to the CWD, so point it at the data-home or the parent won't be "found locally".
-BOE_DATA_HOME ?= $(HOME)/.local/share/boe
-.PHONY: boe-run
-boe-run:  ## Run my-filter locally via boe (--local). macOS: add BOE_DOCKER=--docker
-	@command -v boe >/dev/null 2>&1 || { echo "boe not installed (see https://github.com/tetratelabs/built-on-envoy)"; exit 1; }
-	@echo ">> ensuring the composer parent is in boe's data-home ($(BOE_DATA_HOME))"
-	boe download composer --path $(BOE_DATA_HOME)
-	@echo ">> boe run $(BOE_DOCKER) --local ./myfilter  (listen :$(BOE_LISTEN_PORT), admin :$(BOE_ADMIN_PORT))"
-	@echo ">> then in another shell: curl -sv localhost:$(BOE_LISTEN_PORT)/ | grep -i x-hello   # expect x-hello: built-on-envoy"
-	boe run $(BOE_DOCKER) --local ./myfilter \
-		--listen-port $(BOE_LISTEN_PORT) \
-		--admin-port $(BOE_ADMIN_PORT) \
-		--log-level $(BOE_LOG_LEVEL)
 
 ##@ Help
 
