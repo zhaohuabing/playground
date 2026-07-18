@@ -83,11 +83,14 @@ BOE_LOG_LEVEL   ?= dynamic_modules:debug
 # PATH to build the plugin. If boe can't find the parent, run `boe download
 # composer` once first.
 BOE_DOCKER ?=
+# boe run reads extensions from its data-home; `boe download` defaults its output
+# to the CWD, so point it at the data-home or the parent won't be "found locally".
+BOE_DATA_HOME ?= $(HOME)/.local/share/boe
 .PHONY: boe-run
 boe-run:  ## Run my-filter locally via boe (--local). macOS: add BOE_DOCKER=--docker
 	@command -v boe >/dev/null 2>&1 || { echo "boe not installed (see https://github.com/tetratelabs/built-on-envoy)"; exit 1; }
-	@echo ">> ensuring the composer parent is in boe's local store"
-	boe download composer
+	@echo ">> ensuring the composer parent is in boe's data-home ($(BOE_DATA_HOME))"
+	boe download composer --path $(BOE_DATA_HOME)
 	@echo ">> boe run $(BOE_DOCKER) --local ./myfilter  (listen :$(BOE_LISTEN_PORT), admin :$(BOE_ADMIN_PORT))"
 	@echo ">> then in another shell: curl -sv localhost:$(BOE_LISTEN_PORT)/ | grep -i x-hello   # expect x-hello: built-on-envoy"
 	boe run $(BOE_DOCKER) --local ./myfilter \

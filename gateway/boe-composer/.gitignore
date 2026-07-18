@@ -1,2 +1,4 @@
 /libcomposer.so
 /libcomposer.h
+# stray output if `boe download` is run without --path (defaults to CWD)
+/extensions/
