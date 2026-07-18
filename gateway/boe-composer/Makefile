@@ -86,6 +86,8 @@ BOE_DOCKER ?=
 .PHONY: boe-run
 boe-run:  ## Run my-filter locally via boe (--local). macOS: add BOE_DOCKER=--docker
 	@command -v boe >/dev/null 2>&1 || { echo "boe not installed (see https://github.com/tetratelabs/built-on-envoy)"; exit 1; }
+	@echo ">> ensuring the composer parent is in boe's local store"
+	boe download composer
 	@echo ">> boe run $(BOE_DOCKER) --local ./myfilter  (listen :$(BOE_LISTEN_PORT), admin :$(BOE_ADMIN_PORT))"
 	@echo ">> then in another shell: curl -sv localhost:$(BOE_LISTEN_PORT)/ | grep -i x-hello   # expect x-hello: built-on-envoy"
 	boe run $(BOE_DOCKER) --local ./myfilter \
