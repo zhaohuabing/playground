@@ -1,0 +1,94 @@
+# Stand-in for the Tunnel-Controller's JWKS endpoint: a standalone Envoy with
+# a static config serving the generated jwks.json via direct_response (per the
+# convention of building test backends from Envoy, not third-party servers).
+# The jwks ConfigMap is created by scripts/gen-keys.sh. The gateway's jwt
+# filter fetches this asynchronously — the "controller" is never on the data
+# path.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jwks-envoy-config
+  namespace: connect-tunnel
+data:
+  envoy.yaml: |
+    static_resources:
+      listeners:
+      - name: jwks
+        address:
+          socket_address:
+            address: 0.0.0.0
+            port_value: 8080
+        filter_chains:
+        - filters:
+          - name: envoy.filters.network.http_connection_manager
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+              stat_prefix: jwks
+              route_config:
+                name: jwks
+                virtual_hosts:
+                - name: jwks
+                  domains: ["*"]
+                  routes:
+                  - match:
+                      path: /jwks.json
+                    direct_response:
+                      status: 200
+                      body:
+                        filename: /etc/jwks/jwks.json
+                    response_headers_to_add:
+                    - header:
+                        key: content-type
+                        value: application/json
+              http_filters:
+              - name: envoy.filters.http.router
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jwks
+  namespace: connect-tunnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jwks
+  template:
+    metadata:
+      labels:
+        app: jwks
+    spec:
+      containers:
+      - name: envoy
+        image: docker.io/envoyproxy/envoy:distroless-dev
+        args: ["-c", "/etc/envoy/envoy.yaml", "-l", "warn"]
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: envoy-config
+          mountPath: /etc/envoy
+          readOnly: true
+        - name: jwks
+          mountPath: /etc/jwks
+          readOnly: true
+      volumes:
+      - name: envoy-config
+        configMap:
+          name: jwks-envoy-config
+      - name: jwks
+        configMap:
+          name: jwks
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jwks
+  namespace: connect-tunnel
+spec:
+  selector:
+    app: jwks
+  ports:
+  - port: 8080
+    targetPort: 8080

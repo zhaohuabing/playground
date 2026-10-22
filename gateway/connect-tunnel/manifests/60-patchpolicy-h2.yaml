@@ -1,0 +1,28 @@
+# OPTIONAL — NOT needed for plain CONNECT (TCP tunnels). Verified both ways:
+# phase 2 passes with this deleted, and in the Envoy source allow_connect only
+# advertises ENABLE_CONNECT_PROTOCOL and enables RFC 8441 extended CONNECT
+# (":protocol", e.g. WebSocket or CONNECT-UDP over HTTP/2):
+#   source/common/http/http2/codec_impl.cc:1855  (settings advertisement)
+#   source/common/http/http2/codec_impl.cc:2187  (allow_extended_connect)
+# Keep this around for when the prototype grows an extended-CONNECT leg; the
+# proper fix for that is an EG API field (HTTP2Settings), not this patch.
+# No script applies this file.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: allow-h2-connect
+  namespace: connect-tunnel
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: tunnel-gw
+  type: JSONPatch
+  jsonPatches:
+  - type: type.googleapis.com/envoy.config.listener.v3.Listener
+    name: connect-tunnel/tunnel-gw/https
+    operation:
+      op: add
+      path: /filter_chains/0/filters/0/typed_config/http2_protocol_options
+      value:
+        allow_connect: true

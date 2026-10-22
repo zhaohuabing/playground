@@ -1,0 +1,37 @@
+# Per-stream authentication: every CONNECT request must carry a short-lived
+# JWT in Proxy-Authorization, validated locally against the JWKS served
+# in-cluster (stand-in for the Tunnel-Controller's JWKS endpoint). The
+# authorization rule pins the token's target claim to this route's target —
+# per-route static pinning works because one route == one tunnel target.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: echo-tunnel-auth
+  namespace: connect-tunnel
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: echo-tunnel
+  jwt:
+    providers:
+    - name: tunnel-controller
+      issuer: tunnel-controller
+      remoteJWKS:
+        uri: http://jwks.connect-tunnel.svc.cluster.local:8080/jwks.json
+      extractFrom:
+        headers:
+        - name: Proxy-Authorization
+          valuePrefix: "Bearer "
+  authorization:
+    defaultAction: Deny
+    rules:
+    - name: allow-echo-target
+      action: Allow
+      principal:
+        jwt:
+          provider: tunnel-controller
+          claims:
+          - name: target
+            values:
+            - echo.internal.example:8080

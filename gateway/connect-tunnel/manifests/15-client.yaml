@@ -1,0 +1,31 @@
+# Test client pod standing in for the Tunnel-Client: it dials the gateway over
+# TLS, sends CONNECT with a Proxy-Authorization JWT, and runs app traffic
+# through the tunnel. curl >= 8.1 also supports --proxy-http2 for phase 2.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  namespace: connect-tunnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+      - name: curl
+        image: curlimages/curl:8.11.0
+        command: ["sleep", "infinity"]
+        volumeMounts:
+        - name: client-cert
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: client-cert
+        secret:
+          secretName: client-cert
+          optional: true

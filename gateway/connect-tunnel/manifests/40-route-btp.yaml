@@ -1,0 +1,34 @@
+# One tunnel target = one HTTPRoute. The hostname is what clients name in
+# `CONNECT echo.internal.example:8080` (EG emits ignore_port_in_host_matching,
+# so the port in the authority is fine). The BTP flips the route from HTTP
+# routing to CONNECT termination: Envoy answers 200 and splices raw TCP to the
+# backendRef.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: echo-tunnel
+  namespace: connect-tunnel
+spec:
+  parentRefs:
+  - name: tunnel-gw
+  hostnames:
+  - echo.internal.example
+  rules:
+  - backendRefs:
+    - name: echo
+      port: 8080
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: echo-tunnel-connect
+  namespace: connect-tunnel
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: echo-tunnel
+  httpUpgrade:
+  - type: CONNECT
+    connect:
+      terminate: true
