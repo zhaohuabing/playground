@@ -1,17 +1,18 @@
 # connect-tunnel: ZTG-style CONNECT tunnels on stock Envoy Gateway
 
-Prototype of the Zero Trust Gateway data path using only EG resources — no Go
-code, no custom controller. Proves that stock EG can already do:
+Prototype of the Zero Trust Gateway data path using only EG resources.
+Proves that stock EG can already do:
 
-| Test | Result |
+| Test (all over HTTP/2, stock listener) | Result |
 |------|--------|
-| CONNECT without a token | 401 at the gateway (jwt filter) |
-| CONNECT with a wrong `target` claim | 403 (per-route claim pinning) |
-| CONNECT with a valid short-lived JWT | 200, bytes spliced to the backend |
-| Same over HTTP/2 (`--proxy-http2`), stock listener | tunnel negotiated on h2, works — plain CONNECT needs no `allow_connect` |
-| Phase 3: no client cert | TLS handshake rejected at the listener |
-| Phase 3: client cert, no token | 401 — the two layers are independent |
-| Phase 3: client cert + token (H1 and H2) | 200 — cert per device, token per stream |
+| No device cert | TLS handshake rejected at the listener |
+| Device cert, no token | CONNECT rejected, 401 — the layers are independent |
+| Device cert, token for another target | CONNECT rejected, 403 (per-route claim pinning) |
+| Device cert + valid token | tunnel established 200, echo reached through it |
+
+Everything runs over HTTP/2 on a stock listener. HTTP/1.1 CONNECT also works
+but isn't exercised; the target model is one multiplexed h2 connection per
+client.
 
 The design point this validates: per-stream authentication with
 controller-minted JWTs validated natively by Envoy (SecurityPolicy), instead
@@ -66,13 +67,11 @@ native-JWT-instead-of-ext_authz variant.
 ## Run
 
 Prereqs: a cluster with EG >= v1.5.0 (CONNECT terminate; this was built against
-a gateway-dev image) and `enableEnvoyPatchPolicy: true` for phase 2.
+a gateway-dev image).
 
 ```sh
-scripts/run.sh      # deploy phase 1 (H1 CONNECT + JWT)
-scripts/test.sh     # 401 / 403 / 200 / echo body
-scripts/test-h2.sh   # tunnel over HTTP/2 — no patch needed for plain CONNECT
-scripts/test-mtls.sh # phase 3: require client certs (mTLS) + JWT together
+scripts/run.sh   # deploy everything: gateway, backend, JWKS, CONNECT, JWT, mTLS
+scripts/test.sh  # full matrix over HTTP/2: TLS reject / 401 / 403 / 200
 ```
 
 `scripts/mint-jwt.sh [target] [ttl]` mints tokens; default target is
@@ -80,16 +79,17 @@ scripts/test-mtls.sh # phase 3: require client certs (mTLS) + JWT together
 
 ## Notes and known limits
 
-- curl's `%{http_connect}` is not populated for h2 proxy tunnels; test-h2.sh
-  greps the verbose "CONNECT tunnel" lines instead.
+- On h2, curl reports a rejected CONNECT only as exit 56 and never surfaces
+  the status code, so test.sh asserts the rejection itself. The 401/403 split
+  shows up in the gateway's access logs when a standard log format is
+  configured.
 - `allow_connect` is NOT required for plain H2 CONNECT — it only advertises
   `ENABLE_CONNECT_PROTOCOL` and enables RFC 8441 extended CONNECT
   (`codec_impl.cc:1855`, `:2187`). An EG API field for it matters only when
   WebSocket or CONNECT-UDP over H2 enters the picture.
-- Phase 3 requires a client cert chaining to the client CA on every
-  connection; once `70-ctp-mtls.yaml` is applied, test.sh's bare curl calls
-  fail at the TLS layer by design — use test-mtls.sh, or delete the
-  ClientTrafficPolicy to return to phase 1/2 behavior.
+- mTLS is applied from the start (run.sh includes `70-ctp-mtls.yaml`) and
+  test.sh always presents the device cert; delete the ClientTrafficPolicy to
+  run without it.
 - HTTP/3 is out of reach until Envoy 1.40 (QUIC mTLS, extended CONNECT
   un-gating in EG); the H2 path here is the permanent TCP fallback either way.
 - Multiple app connections over one h2 connection multiplex as separate
