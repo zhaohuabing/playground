@@ -92,15 +92,3 @@ gateway: denied by the authorization policy (403)
  "host": "echo.internal.example:8080",
  "proto": "HTTP/1.1",
 ```
-
-## Notes and known limits
-
-- On h2, curl reports a rejected CONNECT only as exit 56 and never surfaces
-  the status or body, so test.sh reads the auth error from the gateway itself:
-  it diffs the proxy's jwt_authn/rbac denial counters (prometheus endpoint on
-  :19001) around each request.
-- mTLS is applied from the start (run.sh includes `70-ctp-mtls.yaml`) and
-  test.sh always presents the device cert; delete the ClientTrafficPolicy to
-  run without it.
-- Multiple app connections over one h2 connection multiplex as separate
-  CONNECT streams, each carrying its own token — the target connection model.
