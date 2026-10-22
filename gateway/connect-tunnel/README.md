@@ -73,6 +73,26 @@ scripts/test.sh  # full matrix over HTTP/2: TLS reject / 401 / 403 / 200
 `scripts/mint-jwt.sh [target] [ttl]` mints tokens; default target is
 `echo.internal.example:8080`, default TTL 600s.
 
+## Example run
+
+```text
+$ scripts/test.sh
+--- A) no device cert (expect TLS alert: certificate required)
+rejected as expected
+curl: (56) OpenSSL SSL_read: OpenSSL/3.3.2: error:0A00045C:SSL routines::tlsv13 alert certificate required, errno 0
+--- B) cert, no token (expect rejection by the jwt filter)
+rejected as expected
+curl: (56) Failure when receiving data from the peer
+--- C) cert, token for another target (expect rejection by authorization)
+rejected as expected
+curl: (56) Failure when receiving data from the peer
+--- D) cert + valid token (expect established, response 200 + echo body)
+* CONNECT tunnel: HTTP/2 negotiated
+* CONNECT tunnel established, response 200
+ "host": "echo.internal.example:8080",
+ "proto": "HTTP/1.1",
+```
+
 ## Notes and known limits
 
 - On h2, curl reports a rejected CONNECT only as exit 56 and never surfaces

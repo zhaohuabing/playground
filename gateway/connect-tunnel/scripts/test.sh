@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Full matrix, HTTP/2 only (the target transport — one multiplexed connection
 # per client, one authenticated CONNECT stream per app connection).
-# A) no device cert     -> TLS handshake rejected
+# A) no device cert     -> TLS handshake rejected (alert: certificate required)
 # B) cert, no token     -> CONNECT rejected (401 from the jwt filter)
 # C) cert, wrong target -> CONNECT rejected (403 from the authorization rules)
 # D) cert + valid token -> CONNECT tunnel established, response 200 + body
-# Note: on h2, curl reports a rejected CONNECT only as exit 56 and never
-# surfaces the status code, so B and C assert the rejection itself.
+# Note: on h2, curl never surfaces a rejected CONNECT's status code (the
+# stream just closes), so B and C assert the rejection and show curl's error;
+# the 401/403 split is visible in gateway access logs with a standard format.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -18,21 +19,19 @@ TOKEN=$(scripts/mint-jwt.sh)
 BAD=$(scripts/mint-jwt.sh other.internal.example:9999)
 CERT="--proxy-cert /certs/tls.crt --proxy-key /certs/tls.key"
 
-h2() {
-  kubectl exec -n connect-tunnel deploy/client -- \
-    curl -s -o /dev/null --proxy-insecure --proxy-http2 -p -x "$PROXY" "$@" \
-    http://echo.internal.example:8080/
-}
-
 expect_reject() {
-  if h2 "$@" >/dev/null 2>&1; then
+  local err
+  if err=$(kubectl exec -n connect-tunnel deploy/client -- \
+      curl -sS -o /dev/null --proxy-insecure --proxy-http2 -p -x "$PROXY" "$@" \
+      http://echo.internal.example:8080/ 2>&1); then
     echo "UNEXPECTED: tunnel succeeded"
   else
-    echo "rejected as expected (curl exit $?)"
+    echo "rejected as expected"
+    echo "$err" | grep -m1 '^curl:' || echo "$err" | tail -1
   fi
 }
 
-echo "--- A) no device cert (expect TLS handshake failure)"
+echo "--- A) no device cert (expect TLS alert: certificate required)"
 expect_reject --proxy-header "Proxy-Authorization: Bearer $TOKEN"
 
 echo "--- B) cert, no token (expect rejection by the jwt filter)"
