@@ -35,7 +35,7 @@ flowchart LR
     EG["Envoy Gateway<br/>control plane"]
   end
 
-  Client -- "TLS + mTLS, h1 or h2<br/>CONNECT echo.internal.example:8080<br/>Proxy-Authorization: Bearer JWT per stream" --> Proxy
+  Client -- "TLS + mTLS over h2<br/>CONNECT echo.internal.example:8080<br/>Proxy-Authorization: Bearer JWT per stream" --> Proxy
   Proxy -- "spliced raw TCP" --> Echo
   Proxy -. "async JWKS fetch" .-> JWKS
   EG -. "xDS" .-> Proxy
@@ -57,10 +57,6 @@ native-JWT-instead-of-ext_authz variant.
   `httpUpgrade: CONNECT, terminate: true`
 - `manifests/50-securitypolicy.yaml` — JWT from `Proxy-Authorization`,
   authorization rule pinning the `target` claim to this route's target
-- `manifests/60-patchpolicy-h2.yaml` — OPTIONAL EnvoyPatchPolicy setting
-  `allow_connect: true`. Not needed for plain CONNECT (verified); it only
-  enables RFC 8441 extended CONNECT (`:protocol` — WebSocket/CONNECT-UDP
-  over H2). No script applies it.
 - `manifests/70-ctp-mtls.yaml` — ClientTrafficPolicy requiring client certs
   from the generated client CA (phase 3, cert-per-device)
 
@@ -83,14 +79,8 @@ scripts/test.sh  # full matrix over HTTP/2: TLS reject / 401 / 403 / 200
   the status code, so test.sh asserts the rejection itself. The 401/403 split
   shows up in the gateway's access logs when a standard log format is
   configured.
-- `allow_connect` is NOT required for plain H2 CONNECT — it only advertises
-  `ENABLE_CONNECT_PROTOCOL` and enables RFC 8441 extended CONNECT
-  (`codec_impl.cc:1855`, `:2187`). An EG API field for it matters only when
-  WebSocket or CONNECT-UDP over H2 enters the picture.
 - mTLS is applied from the start (run.sh includes `70-ctp-mtls.yaml`) and
   test.sh always presents the device cert; delete the ClientTrafficPolicy to
   run without it.
-- HTTP/3 is out of reach until Envoy 1.40 (QUIC mTLS, extended CONNECT
-  un-gating in EG); the H2 path here is the permanent TCP fallback either way.
 - Multiple app connections over one h2 connection multiplex as separate
   CONNECT streams, each carrying its own token — the target connection model.
