@@ -78,14 +78,14 @@ scripts/test.sh  # full matrix over HTTP/2: TLS reject / 401 / 403 / 200
 ```text
 $ scripts/test.sh
 --- A) no device cert (expect TLS alert: certificate required)
-rejected as expected
 curl: (56) OpenSSL SSL_read: OpenSSL/3.3.2: error:0A00045C:SSL routines::tlsv13 alert certificate required, errno 0
---- B) cert, no token (expect rejection by the jwt filter)
-rejected as expected
+gateway: no auth-filter denial — rejected at the TLS layer
+--- B) cert, no token (expect 401 from the jwt filter)
 curl: (56) Failure when receiving data from the peer
---- C) cert, token for another target (expect rejection by authorization)
-rejected as expected
+gateway: denied by the jwt filter (401)
+--- C) cert, token for another target (expect 403 from authorization)
 curl: (56) Failure when receiving data from the peer
+gateway: denied by the authorization policy (403)
 --- D) cert + valid token (expect established, response 200 + echo body)
 * CONNECT tunnel: HTTP/2 negotiated
 * CONNECT tunnel established, response 200
@@ -96,9 +96,9 @@ curl: (56) Failure when receiving data from the peer
 ## Notes and known limits
 
 - On h2, curl reports a rejected CONNECT only as exit 56 and never surfaces
-  the status code, so test.sh asserts the rejection itself. The 401/403 split
-  shows up in the gateway's access logs when a standard log format is
-  configured.
+  the status or body, so test.sh reads the auth error from the gateway itself:
+  it diffs the proxy's jwt_authn/rbac denial counters (prometheus endpoint on
+  :19001) around each request.
 - mTLS is applied from the start (run.sh includes `70-ctp-mtls.yaml`) and
   test.sh always presents the device cert; delete the ClientTrafficPolicy to
   run without it.
