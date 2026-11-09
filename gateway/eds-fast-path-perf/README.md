@@ -26,6 +26,12 @@ Context: [envoyproxy/gateway#9777](https://github.com/envoyproxy/gateway/issues/
   runner, fast/full publications) from start to end.
 - `cmd/perf report` writes `summary.md` comparing the modes.
 
+Compare CPU between modes only in the churn scenarios. Probes run one after
+another, so a faster path also sends changes more often. In `idle` and
+`ineligible` the two modes therefore see different change rates, and slow full
+builds merge more of the fast-mode changes. The churn scenarios run background
+load at a fixed rate that keeps full translation busy in both modes.
+
 ### Scenarios
 
 | Scenario | Probe change | Background load |
