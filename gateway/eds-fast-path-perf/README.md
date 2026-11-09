@@ -54,9 +54,6 @@ column in the runner table is the time for one full xDS translation.
 
 ## Notes from running against #10398
 
-- Commits up to 803aea0 never used the fast path in a real deployment: the
-  translator only captured endpoint contexts when `ExtensionManager == nil`, and
-  `NewManager` always returns a manager. That was fixed in 44a6cf5.
 - With the flag on, the new endpoint controller uses controller-runtime's default
   workqueue metrics, whose help text conflicts with EG's own, so `/metrics` returns
   500. The runs here patch the controller to use EG's `WorkqueueMetricsProvider`
