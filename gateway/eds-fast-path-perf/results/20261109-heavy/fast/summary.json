@@ -1,0 +1,174 @@
+[
+  {
+    "mode": "fast",
+    "scenario": "idle",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 46.035,
+    "p90Ms": 51.167,
+    "p99Ms": 71.462,
+    "maxMs": 71.462,
+    "meanMs": 45.55082499999999,
+    "cpuAvgCores": 1.688610346862506,
+    "cpuP95Cores": 2.2089379205584243,
+    "rssAvgMiB": 922.6927720716783,
+    "rssMaxMiB": 1020.8046875,
+    "heapMaxMiB": 880.9296875,
+    "goroutinesMax": 455,
+    "runners": {
+      "gateway-api": {
+        "count": 40,
+        "meanSec": 0.162965630325
+      },
+      "infrastructure": {
+        "count": 40,
+        "meanSec": 0.020924795800000007
+      },
+      "provider": {
+        "count": 0,
+        "meanSec": 0
+      },
+      "xds": {
+        "count": 20,
+        "meanSec": 6.882511330899999
+      }
+    },
+    "fastPublications": 40,
+    "fullPublications": 20,
+    "refreshSkipped": 160040,
+    "fastRefreshMeanMs": 19.7251434,
+    "snapshotUpdates": 60,
+    "envoyMemMiB": 934.001335144043,
+    "churnOps": 0,
+    "durationSec": 142.480897212
+  },
+  {
+    "mode": "fast",
+    "scenario": "endpoint-churn",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 48.619,
+    "p90Ms": 61.589,
+    "p99Ms": 85.999,
+    "maxMs": 85.999,
+    "meanMs": 51.171350000000004,
+    "cpuAvgCores": 4.266663777129592,
+    "cpuP95Cores": 4.717894799854015,
+    "rssAvgMiB": 1724.1752076048951,
+    "rssMaxMiB": 2103.0546875,
+    "heapMaxMiB": 1761.515625,
+    "goroutinesMax": 455,
+    "runners": {
+      "gateway-api": {
+        "count": 711,
+        "meanSec": 0.17416598554571022
+      },
+      "infrastructure": {
+        "count": 712,
+        "meanSec": 0.02334901813061798
+      },
+      "provider": {
+        "count": 0,
+        "meanSec": 0
+      },
+      "xds": {
+        "count": 18,
+        "meanSec": 7.964903963833336
+      }
+    },
+    "fastPublications": 752,
+    "fullPublications": 18,
+    "refreshSkipped": 141076,
+    "fastRefreshMeanMs": 22.42989939361699,
+    "snapshotUpdates": 770,
+    "envoyMemMiB": 934.1348342895508,
+    "churnOps": 791,
+    "durationSec": 142.374361383
+  },
+  {
+    "mode": "fast",
+    "scenario": "config-churn",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 46.905,
+    "p90Ms": 55.556,
+    "p99Ms": 88.349,
+    "maxMs": 88.349,
+    "meanMs": 48.80802500000001,
+    "cpuAvgCores": 1.9625917690998385,
+    "cpuP95Cores": 2.731564760483445,
+    "rssAvgMiB": 1019.4972491197183,
+    "rssMaxMiB": 1120.1875,
+    "heapMaxMiB": 918.671875,
+    "goroutinesMax": 455,
+    "runners": {
+      "gateway-api": {
+        "count": 111,
+        "meanSec": 0.16137295644144206
+      },
+      "infrastructure": {
+        "count": 111,
+        "meanSec": 0.021413013576576524
+      },
+      "provider": {
+        "count": 71,
+        "meanSec": 0.000045182014084507454
+      },
+      "xds": {
+        "count": 21,
+        "meanSec": 7.007889534904761
+      }
+    },
+    "fastPublications": 40,
+    "fullPublications": 21,
+    "refreshSkipped": 168042,
+    "fastRefreshMeanMs": 21.508071750000024,
+    "snapshotUpdates": 61,
+    "envoyMemMiB": 934.1400527954102,
+    "churnOps": 78,
+    "durationSec": 141.606088248
+  },
+  {
+    "mode": "fast",
+    "scenario": "ineligible",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 7479.397,
+    "p90Ms": 7661.48,
+    "p99Ms": 7793.612,
+    "maxMs": 7793.612,
+    "meanMs": 7465.038925000001,
+    "cpuAvgCores": 1.0274324139716293,
+    "cpuP95Cores": 1.8008016862970653,
+    "rssAvgMiB": 922.7148259538725,
+    "rssMaxMiB": 1045.13671875,
+    "heapMaxMiB": 845.8671875,
+    "goroutinesMax": 455,
+    "runners": {
+      "gateway-api": {
+        "count": 40,
+        "meanSec": 0.1482146494999995
+      },
+      "infrastructure": {
+        "count": 40,
+        "meanSec": 0.021331833324999928
+      },
+      "provider": {
+        "count": 40,
+        "meanSec": 0.00004603122499999765
+      },
+      "xds": {
+        "count": 40,
+        "meanSec": 6.968866909824996
+      }
+    },
+    "fastPublications": 0,
+    "fullPublications": 40,
+    "refreshSkipped": 320100,
+    "fastRefreshMeanMs": 0.026365150000096094,
+    "snapshotUpdates": 40,
+    "envoyMemMiB": 934.1929397583008,
+    "churnOps": 0,
+    "durationSec": 438.794115614
+  }
+]

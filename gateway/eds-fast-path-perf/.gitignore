@@ -1,0 +1,5 @@
+bin/
+config.yaml
+results/smoke/
+results/diag-*/
+results/cal*/

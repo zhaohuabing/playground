@@ -1,0 +1,174 @@
+[
+  {
+    "mode": "full",
+    "scenario": "idle",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 7079.968,
+    "p90Ms": 7219.705,
+    "p99Ms": 7287.585,
+    "maxMs": 7287.585,
+    "meanMs": 7074.873599999997,
+    "cpuAvgCores": 0.9684552075813984,
+    "cpuP95Cores": 1.5996070101493762,
+    "rssAvgMiB": 737.551472214033,
+    "rssMaxMiB": 862.703125,
+    "heapMaxMiB": 667.09375,
+    "goroutinesMax": 447,
+    "runners": {
+      "gateway-api": {
+        "count": 40,
+        "meanSec": 0.14363247875000001
+      },
+      "infrastructure": {
+        "count": 40,
+        "meanSec": 0.021952912075000004
+      },
+      "provider": {
+        "count": 0,
+        "meanSec": 0
+      },
+      "xds": {
+        "count": 40,
+        "meanSec": 6.703189079725
+      }
+    },
+    "fastPublications": 0,
+    "fullPublications": 0,
+    "refreshSkipped": 0,
+    "fastRefreshMeanMs": 0,
+    "snapshotUpdates": 40,
+    "envoyMemMiB": 934.9469146728516,
+    "churnOps": 0,
+    "durationSec": 423.719977136
+  },
+  {
+    "mode": "full",
+    "scenario": "endpoint-churn",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 11749.05,
+    "p90Ms": 12156.037,
+    "p99Ms": 15388.177,
+    "maxMs": 15388.177,
+    "meanMs": 11770.073874999998,
+    "cpuAvgCores": 3.913044018241524,
+    "cpuP95Cores": 4.243497860120862,
+    "rssAvgMiB": 1494.147731321254,
+    "rssMaxMiB": 1858.8203125,
+    "heapMaxMiB": 1652.671875,
+    "goroutinesMax": 448,
+    "runners": {
+      "gateway-api": {
+        "count": 3070,
+        "meanSec": 0.17364113659381092
+      },
+      "infrastructure": {
+        "count": 3070,
+        "meanSec": 0.023405831773289847
+      },
+      "provider": {
+        "count": 0,
+        "meanSec": 0
+      },
+      "xds": {
+        "count": 80,
+        "meanSec": 7.626094029275
+      }
+    },
+    "fastPublications": 0,
+    "fullPublications": 0,
+    "refreshSkipped": 0,
+    "fastRefreshMeanMs": 0,
+    "snapshotUpdates": 80,
+    "envoyMemMiB": 934.0452117919922,
+    "churnOps": 3148,
+    "durationSec": 613.808827078
+  },
+  {
+    "mode": "full",
+    "scenario": "config-churn",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 10174.301,
+    "p90Ms": 10527.469,
+    "p99Ms": 14031.203,
+    "maxMs": 14031.203,
+    "meanMs": 10190.302825,
+    "cpuAvgCores": 1.7691725611580553,
+    "cpuP95Cores": 2.1937431418232394,
+    "rssAvgMiB": 894.9177335196168,
+    "rssMaxMiB": 981.70703125,
+    "heapMaxMiB": 812.515625,
+    "goroutinesMax": 447,
+    "runners": {
+      "gateway-api": {
+        "count": 313,
+        "meanSec": 0.16394109663897558
+      },
+      "infrastructure": {
+        "count": 313,
+        "meanSec": 0.021635075872204618
+      },
+      "provider": {
+        "count": 274,
+        "meanSec": 0.00004578952554744503
+      },
+      "xds": {
+        "count": 81,
+        "meanSec": 6.798744852283951
+      }
+    },
+    "fastPublications": 0,
+    "fullPublications": 0,
+    "refreshSkipped": 0,
+    "fastRefreshMeanMs": 0,
+    "snapshotUpdates": 81,
+    "envoyMemMiB": 933.9866333007812,
+    "churnOps": 281,
+    "durationSec": 547.836808225
+  },
+  {
+    "mode": "full",
+    "scenario": "ineligible",
+    "samples": 40,
+    "misses": 0,
+    "p50Ms": 7254.91,
+    "p90Ms": 7389.607,
+    "p99Ms": 7524.994,
+    "maxMs": 7524.994,
+    "meanMs": 7178.61265,
+    "cpuAvgCores": 0.9860347719798155,
+    "cpuP95Cores": 1.640950775084165,
+    "rssAvgMiB": 832.1227770052693,
+    "rssMaxMiB": 923.9921875,
+    "heapMaxMiB": 746.3828125,
+    "goroutinesMax": 447,
+    "runners": {
+      "gateway-api": {
+        "count": 40,
+        "meanSec": 0.14708707132500082
+      },
+      "infrastructure": {
+        "count": 40,
+        "meanSec": 0.02114125452499884
+      },
+      "provider": {
+        "count": 40,
+        "meanSec": 0.00004588920000000024
+      },
+      "xds": {
+        "count": 40,
+        "meanSec": 6.7031150517250015
+      }
+    },
+    "fastPublications": 0,
+    "fullPublications": 0,
+    "refreshSkipped": 0,
+    "fastRefreshMeanMs": 0,
+    "snapshotUpdates": 40,
+    "envoyMemMiB": 934.0685958862305,
+    "churnOps": 0,
+    "durationSec": 426.484448638
+  }
+]

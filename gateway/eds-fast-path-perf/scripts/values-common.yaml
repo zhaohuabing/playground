@@ -1,0 +1,16 @@
+# Shared by both modes. CPU and memory are pinned so full and fast runs are comparable;
+# the chart's default 1Gi memory limit OOMs with the heavy config.
+deployment:
+  envoyGateway:
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: "4"
+        memory: 2Gi
+      limits:
+        cpu: "8"
+        memory: 16Gi
+config:
+  envoyGateway:
+    extensionApis:
+      enableEnvoyPatchPolicy: true
