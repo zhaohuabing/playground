@@ -58,12 +58,3 @@ GOOS=linux GOARCH=amd64 go build -o bin/ ./cmd/...   # or build on the box
 Calibrate with a short `perf run -mode fast -scenarios idle -samples 4`; the `xds`
 column in the runner table is the time for one full xDS translation.
 
-## Notes from running against #10398
-
-- With the flag on, the new endpoint controller uses controller-runtime's default
-  workqueue metrics, whose help text conflicts with EG's own, so `/metrics` returns
-  500. The runs here patch the controller to use EG's `WorkqueueMetricsProvider`
-  (`NewQueue` option), as the main controller does.
-- `xds_endpoint_refresh_skipped_total{reason="already_applied"}` counts one skip per
-  unchanged cluster on every full replay, so it grows by the cluster count on each
-  full build.
